@@ -1,0 +1,334 @@
+﻿@page "/test"
+
+@using Newtonsoft.Json.Linq
+@using System.IO
+@using System
+
+
+
+<h1>LOL</h1>
+
+<p></p>
+
+@if (ttx == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    CreateJObj();
+    <p>Champion</p>
+    <table>
+        <tbody>
+            <tr>
+                @*위쪽*@
+                <td height="200" width="1200">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th width="170">Name</th>
+                                <th>Title</th>
+                                <th width="200">Image</th>
+                                <th width="590">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>@ttx[statusNum][0]["name"]</td>
+                                <td>@ttx[statusNum][0]["title"]</td>
+                                <td>
+                                    <img src="@(getImages(0))" height="100" />
+                                </td>
+                                <td>
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th>Hp</th>
+                                                <th>Mp</th>
+                                                <th>MoveSpeed</th>
+                                                <th>AttackDamage</th>
+                                                <th>Armor</th>
+                                                <th>AttackRange</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td style="text-align:center">@getStatus("hp")</td>
+                                                <td style="text-align:center">@getStatus("mp")</td>
+                                                <td style="text-align:center">@getStatus("movespeed")</td>
+                                                <td style="text-align:center">@getStatus("attackdamage")</td>
+                                                <td style="text-align:center">@getStatus("armor")</td>
+                                                <td style="text-align:center">@getStatus("attackrange")</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+
+                                    
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>             
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Skill</th>
+                                <th width="560">Skill Video</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <img @onclick="@(e=>ClickImg(1))" style="margin-left:20px; margin-right:15px" src="@(getImages(1))" height="50" />
+                                    <img @onclick="@(e=>ClickImg(2))" style="margin-right:15px" src="@(getImages(2))" height="50" />
+                                    <img @onclick="@(()=>ClickImg(3))" style="margin-right:15px" src="@(getImages(3))" height="50" />
+                                    <img @onclick="@(e=>ClickImg(4))" style="margin-right:15px" src="@(getImages(4))" height="50" />
+                                    <img @onclick="@(e=>ClickImg(5))" style="margin-right:15px" src="@(getImages(5))" height="50" />
+                                    <br><br>
+                                    <div>
+                                        <table>
+                                            <thead>
+                                                <tr>
+                                                    <th width="150">Name</th>
+                                                    <th>Explanation</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td>@skillName</td>
+                                                    <td>@skillText</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                        <table>
+                                            <thead>
+                                                <tr>
+                                                    <th width="150">CoolTime</th>
+                                                    <th width="150">Cost</th>
+                                                    <th>Range</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td>@skillCoolTime</td>
+                                                    <td>@skillCost</td>
+                                                    <td>@skillRange</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </td>
+                                <td>
+                                    <video width="560" height="354" src="@skillString" controls autoplay></video>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    
+    <span style="float:left">
+        <button style="width:200px" class="btn btn-primary" @onclick="Back">@(statusNum==0?"뒤로":ttx[statusNum-1][0]["name"])</button>
+    </span>
+    <span style="float:right">
+        <button style="width:200px" class="btn btn-primary" @onclick="Forword">@ttx[statusNum + 1][0]["name"]</button>
+    </span>
+
+}
+
+@code {
+    public List<List<JToken>> ttx = new List<List<JToken>>();
+
+    private int statusNum = 0;
+    private int clickImgNum = 0;
+    private string skillName = null;
+    private string skillText = null;
+    private string skillCoolTime = null;
+    private string skillRange = null;
+    private string skillCost = null;
+    private string path = null;
+    private string statusText = null;
+    private string champion = "";
+
+    public string skillString= "https://d28xe8vt774jo5.cloudfront.net/champion-abilities/0266/ability_0266_P1.webm";
+
+    public void CreateJObj()
+    {
+        string jsonPath = @"..\BlazorApp1\championFull.json";
+        string json = File.ReadAllText(jsonPath);
+        JObject jObject = JObject.Parse(json);
+
+        var a = from x in jObject["data"]
+                select x;
+
+        foreach (var item in a)
+        {
+            ttx.Add(item.ToList());
+        }
+
+        if (skillName == null)
+            ClickImg(1);
+    }
+
+    public void ClickImg(int num)
+    {
+        getSkillText(num);
+        ShowSkillView(num);
+    }
+
+    public void getSkillText(int num)
+    {
+        if (num == 1)
+        {
+            skillName = $"{ttx[statusNum][0]["passive"]["name"]}";
+            skillText = $"{ttx[statusNum][0]["passive"]["description"]}";
+            skillCoolTime = $"아직 못 찾음";
+            skillRange = "아직 못 찾음";
+            skillCost = "아직 못 찾음";
+        }
+        else if (num == 2)
+        {
+            skillName = $"{ttx[statusNum][0]["spells"][0]["name"]}";
+            skillText = $"{ttx[statusNum][0]["spells"][0]["description"]}";
+            skillCoolTime = $"{ttx[statusNum][0]["spells"][0]["cooldownBurn"]}";
+            skillRange = $"{ttx[statusNum][0]["spells"][0]["rangeBurn"]}";
+            skillCost = $"{ttx[statusNum][0]["spells"][0]["costBurn"]}";
+        }
+        else if (num == 3)
+        {
+            skillName = $"{ttx[statusNum][0]["spells"][1]["name"]}";
+            skillText = $"{ttx[statusNum][0]["spells"][1]["description"]}";
+            skillCoolTime = $"{ttx[statusNum][0]["spells"][1]["cooldownBurn"]}";
+            skillRange = $"{ttx[statusNum][0]["spells"][1]["rangeBurn"]}";
+            skillCost = $"{ttx[statusNum][0]["spells"][1]["costBurn"]}";
+        }
+        else if (num == 4)
+        {
+            skillName = $"{ttx[statusNum][0]["spells"][2]["name"]}";
+            skillText = $"{ttx[statusNum][0]["spells"][2]["description"]}";
+            skillCoolTime = $"{ttx[statusNum][0]["spells"][2]["cooldownBurn"]}";
+            skillCost = $"{ttx[statusNum][0]["spells"][2]["costBurn"]}";
+            skillRange = $"{ttx[statusNum][0]["spells"][2]["rangeBurn"]}";
+        }
+        else if (num == 5)
+        {
+            skillName = $"{ttx[statusNum][0]["spells"][3]["name"]}";
+            skillText = $"{ttx[statusNum][0]["spells"][3]["description"]}";
+            skillCoolTime = $"{ttx[statusNum][0]["spells"][3]["cooldownBurn"]}";
+            skillRange = $"{ttx[statusNum][0]["spells"][3]["rangeBurn"]}"; 
+            skillCost = $"{ttx[statusNum][0]["spells"][3]["costBurn"]}";
+
+        }
+
+
+    }
+
+    public string getImages(int num)
+    {
+        if (num == 0)
+            path = $"/css/images/imgLol/champion/champion/{ttx[statusNum][0]["id"]}.png";
+        else if(num ==1)
+            path = $"/css/images/imgLol/passive/{ttx[statusNum][0]["passive"]["image"]["full"]}";
+        else if (num == 2)
+            path = $"/css/images/imgLol/spell/{ttx[statusNum][0]["spells"][0]["image"]["full"]}";
+        else if (num == 3)
+            path = $"/css/images/imgLol/spell/{ttx[statusNum][0]["spells"][1]["image"]["full"]}";
+        else if (num == 4)
+            path = $"/css/images/imgLol/spell/{ttx[statusNum][0]["spells"][2]["image"]["full"]}";
+        else if (num == 5)
+            path = $"/css/images/imgLol/spell/{ttx[statusNum][0]["spells"][3]["image"]["full"]}";
+
+        return path;
+    }
+
+    public void ShowSkillView(int num)
+    {
+        string getChampionKey = null;
+        if($"{ttx[statusNum][0]["key"]}".Length == 1)
+        {
+            getChampionKey = $"000{ttx[statusNum][0]["key"]}";
+        }
+        else if ($"{ttx[statusNum][0]["key"]}".Length == 2)
+        {
+            getChampionKey = $"00{ttx[statusNum][0]["key"]}";
+        }
+        else if ($"{ttx[statusNum][0]["key"]}".Length == 3)
+        {
+            getChampionKey = $"0{ttx[statusNum][0]["key"]}";
+        }
+        else if ($"{ttx[statusNum][0]["key"]}".Length == 4)
+        {
+            getChampionKey = $"{ttx[statusNum][0]["key"]}";
+        }
+
+
+        if (num == 1)
+            skillString = $"https://d28xe8vt774jo5.cloudfront.net/champion-abilities/{getChampionKey}/ability_{getChampionKey}_P1.webm";
+        else if (num==2)
+        {
+            skillString = $"https://d28xe8vt774jo5.cloudfront.net/champion-abilities/{getChampionKey}/ability_{getChampionKey}_Q1.webm";
+        }
+        else if (num == 3)
+        {
+            skillString = $"https://d28xe8vt774jo5.cloudfront.net/champion-abilities/{getChampionKey}/ability_{getChampionKey}_W1.webm";
+        }
+        else if (num == 4)
+        {
+            skillString = $"https://d28xe8vt774jo5.cloudfront.net/champion-abilities/{getChampionKey}/ability_{getChampionKey}_E1.webm";
+        }
+        else if (num == 5)
+        {
+            skillString = $"https://d28xe8vt774jo5.cloudfront.net/champion-abilities/{getChampionKey}/ability_{getChampionKey}_R1.webm";
+        }
+    }
+
+    private void Back()
+    {
+        if (statusNum == 0)
+            return;
+        statusNum--;
+        ShowSkillView(1);
+        ClickImg(1);
+    }
+
+    private void Forword()
+    {
+        if (statusNum == ttx.Count)
+            return;
+        statusNum++;
+        ShowSkillView(1);
+        ClickImg(1);
+    }
+
+    public string getStatus(string text)
+    {
+        switch (text)
+        {
+            case "hp":
+                statusText = $"{ttx[statusNum][0]["stats"]["hp"]}";
+                break;
+            case "mp":
+                statusText = $"{ttx[statusNum][0]["stats"]["mp"]}";
+                break;
+            case "movespeed":
+                statusText = $"{ttx[statusNum][0]["stats"]["movespeed"]}";
+                break;
+            case "armor":
+                statusText = $"{ttx[statusNum][0]["stats"]["armor"]}";
+                break;
+            case "attackrange":
+                statusText = $"{ttx[statusNum][0]["stats"]["attackrange"]}";
+                break;
+            case "attackdamage":
+                statusText = $"{ttx[statusNum][0]["stats"]["attackdamage"]}";
+                break;
+
+        }
+        return statusText;
+    }
+    }

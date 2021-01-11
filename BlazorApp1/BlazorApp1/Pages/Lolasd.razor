@@ -1,0 +1,140 @@
+﻿@page "/lol"
+
+@using Newtonsoft.Json.Linq
+@using System.IO
+@using System
+
+
+
+<h1>LOL</h1>
+
+<p></p>
+
+@if (ttx == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    CreateJObj();
+    <p>Champion</p>
+    <table class="table">
+        <thead>
+            <tr>
+                <th width="100">Name</th>
+                <th>Title</th>
+                @*<th style="width:400px">Blurb</th>*@
+                <th>Image</th>
+                <th>MadMovie</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>@ttx[statusNum][0]["name"]</td>
+                <td>@ttx[statusNum][0]["title"]</td>
+                <td>@ttx[statusNum][0]["blurb"]</td>
+                <td>
+                    <img src="@getImages()" height="100" />
+                </td>
+                <td>
+                    @*<button @onclick="@(e => ShowSkillView(1))"></button>*@
+                    <table>
+                        <thead>
+                            <img id="asdzxc" src="@getImages()" height="50" width="50" onclick="@skillString" />
+                            <img id="asdzxc" src="@getImages()" height="50" width="50" onclick="@skillString" />
+                            <img id="asdzxc" src="@getImages()" height="50" width="50" onclick="@skillString" />
+                            <img id="asdzxc" src="@getImages()" height="50" width="50" onclick="@skillString" />
+                        </thead>
+                        
+                       
+                    </table>
+                    @*<iframe width="560" height="315" src="@skillString" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                    <iframe width="560" height="315" src="https://www.youtube.com/embed/mBgKMFi3eRg" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>*@
+                    <video width="560" height="315" src="@skillString" controls autoplay></video>
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
+    
+    <span style="float:left">
+        <button style="width:200px" class="btn btn-primary" @onclick="Qwe">@(statusNum==0?"뒤로":ttx[statusNum-1][0]["name"])</button>
+    </span>
+    <span style="float:right">
+        <button style="width:200px" class="btn btn-primary" @onclick="Asd">@ttx[statusNum + 1][0]["name"]</button>
+    </span>
+
+}
+
+@code {
+    List<List<JToken>> ttx = new List<List<JToken>>();
+
+    private int statusNum = 0;
+
+    public string skillString= "https://d28xe8vt774jo5.cloudfront.net/champion-abilities/0266/ability_0266_Q1.webm";
+
+    public void CreateJObj()
+    {
+        string jsonPath = @"..\BlazorApp1\championFull.json";
+        string json = File.ReadAllText(jsonPath);
+        JObject jObject = JObject.Parse(json);
+
+        var a = from x in jObject["data"]
+                select x;
+
+        foreach (var item in a)
+        {
+            ttx.Add(item.ToList());
+        }
+    }
+
+    public string getImages()
+    {
+        string path = $"/css/images/imgLol/champion/champion/{ttx[statusNum][0]["id"]}.png";
+        @*        string path = @$"C:/Users/Team603/Desktop/image/loading/{ttx[statusNum][0]["name"]}_0.jpg";
+        *@  return path;
+}
+
+    public void ShowSkillView(int num)
+    {
+        string getChampionKey = null;
+        if($"{ttx[statusNum][0]["key"]}".Length == 1)
+        {
+            getChampionKey = $"000{ttx[statusNum][0]["key"]}";
+        }
+        else if ($"{ttx[statusNum][0]["key"]}".Length == 2)
+        {
+            getChampionKey = $"00{ttx[statusNum][0]["key"]}";
+        }
+        else if ($"{ttx[statusNum][0]["key"]}".Length == 3)
+        {
+            getChampionKey = $"0{ttx[statusNum][0]["key"]}";
+        }
+        else if ($"{ttx[statusNum][0]["key"]}".Length == 4)
+        {
+            getChampionKey = $"{ttx[statusNum][0]["key"]}";
+        }
+
+
+        if (num == 1)
+            skillString = $"https://d28xe8vt774jo5.cloudfront.net/champion-abilities/{getChampionKey}/ability_{getChampionKey}_Q1.webm";
+
+        @*return skillString;*@
+    }
+
+    private void Qwe()
+    {
+        if (statusNum == 0)
+            return;
+        statusNum--;
+        ShowSkillView(1);
+    }
+
+    private void Asd()
+    {
+        if (statusNum == ttx.Count)
+            return;
+        statusNum++;
+        ShowSkillView(1);
+    }
+}
