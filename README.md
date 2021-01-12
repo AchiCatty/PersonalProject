@@ -1,2 +1,2 @@
-# TeamToPersonalProject
-Team to Personal
+# PersonalProject
+Personal
